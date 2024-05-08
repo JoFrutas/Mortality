@@ -1,0 +1,177 @@
+---
+title: "Mortalidade"
+author: "Joao Frutuoso"
+date: "2024-05-08"
+output:
+  html_document: default
+  pdf_document: default
+---
+
+```{r}
+rm(list = ls())  # Remove all objects from the workspace
+```
+
+```{r}
+# Carregar as bibliotecas necessárias
+library(tidyverse)  # Para manipulação e visualização de dados
+library(caret)      # Para pré-processamento de dados e treinamento de modelos
+library(rpart)      # Para usar Árvores de Decisão
+
+library(dplyr)  # For data manipulation
+library(ggplot2)  # For data visualization
+library(car)
+```
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r}
+library(readr)
+my_data <- read_csv("~/Voltar ao R/Mort R/data01.csv")
+View(my_data)
+```
+
+```{r}
+# Split the data into two groups based on age
+data_above_81 <- subset(my_data, age > 81)
+data_below_81 <- subset(my_data, age <= 81)
+```
+
+```{r}
+
+# Summary statistics for both groups
+summary(data_above_81)
+summary(data_below_81)
+
+```
+
+```{r}
+# Convert spaces in column names to underscores
+colnames(my_data) <- gsub(" ", "_", colnames(my_data))
+```
+
+```{r}
+# Remove rows with missing values
+my_data <- na.omit(my_data)
+```
+
+```{r}
+# Check the class of the data object
+class(data)
+
+# Check the structure of the data object
+str(data)
+```
+
+```{r}
+if (!is.data.frame(my_data)) {
+  my_data <- as.data.frame(my_data)
+}
+```
+
+```{r}
+my_data <- dplyr::rename(my_data, NT_ProBNP = `NT-proBNP`)
+```
+
+```{r}
+# Check the column names in the dataset
+colnames(my_data)
+```
+
+```{r}
+# Fit a logistic regression model for each group
+model_above_81 <- glm(outcome ~ ., data = data_above_81, family = binomial)
+model_below_81 <- glm(outcome ~ ., data = data_below_81, family = binomial)
+
+# Get the coefficients of the models
+coef_above_81 <- coef(model_above_81)
+coef_below_81 <- coef(model_below_81)
+
+# Compare the coefficients
+comparison <- data.frame(Above_81 = coef_above_81, Below_81 = coef_below_81)
+print(comparison)
+```
+
+```{r}
+# Summary of the model for ages above 81
+summary_above_81 <- summary(model_above_81)
+print(summary_above_81)
+
+```
+
+```{r}
+
+# Summary of the model for ages below 81
+summary_below_81 <- summary(model_below_81)
+print(summary_below_81)
+```
+
+```{r}
+
+# Calculate the standard errors of the coefficients
+se_above_81 <- sqrt(diag(vcov(model_above_81)))
+se_below_81 <- sqrt(diag(vcov(model_below_81)))
+
+# Calculate the z-scores
+z_scores <- (coef_above_81 - coef_below_81) / sqrt(se_above_81^2 + se_below_81^2)
+
+# Calculate the p-values
+p_values <- 2 * (1 - pnorm(abs(z_scores)))
+
+# Create a dataframe to display the results
+comparison <- data.frame(
+  Coef_Above_81 = coef_above_81,
+  Coef_Below_81 = coef_below_81,
+  Z_Score = z_scores,
+  P_Value = p_values
+)
+
+# Print the comparison
+print(comparison)
+print (p_values
+      )
+```
+
+```{r}
+
+# Get the coefficients of the models
+coef_above_81 <- coef(model_above_81)
+coef_below_81 <- coef(model_below_81)
+
+# Method 1: Wald Test p-values (built-in)
+# Extract Wald test p-values from the model summary for group above 81
+summary_above_81 <- summary(model_above_81)
+wald_p_above_81 <- summary_above_81$coefficients[,4]  # Extract p-values (4th column)
+
+# Repeat for the model below 81
+summary_below_81 <- summary(model_below_81)
+wald_p_below_81 <- summary_below_81$coefficients[,4]  
+
+# Compare p-values to identify significant differences
+coefficient_differences <- coef_above_81 - coef_below_81
+significant_diff_wald <- which(wald_p_above_81 != wald_p_below_81)  # Find mismatched p-values
+print (significant_diff_wald)
+```
+
+```{r}
+# Split data by age (using your preferred method)
+data_above_81 <- my_data[my_data$age > 81, ]
+data_below_81 <- my_data[my_data$age <= 81, ]
+
+# Build decision tree models with control argument
+young_model <- rpart::rpart(outcome ~ ., data = data_below_81, cp = 0.01)  # Set cost-complexity pruning
+old_model <- rpart::rpart(outcome ~ ., data = data_above_81, cp = 0.01)  # Set cost-complexity pruning
+
+# Feature importance (using summary)
+summary(young_model)
+summary(old_model)  # Set cost-complexity pruning
+
+
+```
