@@ -25,16 +25,19 @@ library(car)
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
+...
 
 ## R Markdown
 
 This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
 
 When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+...
 
 ```{r}
-library(readr)
-my_data <- read_csv("~/Voltar ao R/Mort R/data01.csv")
+my_data <- read_csv("~/Voltar ao R/Mort R/data01.csv", 
+    col_types = cols(group = col_skip(), 
+        ID = col_skip()))
 View(my_data)
 ```
 
@@ -139,26 +142,7 @@ print (p_values
       )
 ```
 
-```{r}
 
-# Get the coefficients of the models
-coef_above_81 <- coef(model_above_81)
-coef_below_81 <- coef(model_below_81)
-
-# Method 1: Wald Test p-values (built-in)
-# Extract Wald test p-values from the model summary for group above 81
-summary_above_81 <- summary(model_above_81)
-wald_p_above_81 <- summary_above_81$coefficients[,4]  # Extract p-values (4th column)
-
-# Repeat for the model below 81
-summary_below_81 <- summary(model_below_81)
-wald_p_below_81 <- summary_below_81$coefficients[,4]  
-
-# Compare p-values to identify significant differences
-coefficient_differences <- coef_above_81 - coef_below_81
-significant_diff_wald <- which(wald_p_above_81 != wald_p_below_81)  # Find mismatched p-values
-print (significant_diff_wald)
-```
 
 ```{r}
 # Split data by age (using your preferred method)
@@ -174,4 +158,22 @@ summary(young_model)
 summary(old_model)  # Set cost-complexity pruning
 
 
+```
+
+```{r}
+# Install rpart.plot package if not already installed
+if (!require("rpart.plot")) install.packages("rpart.plot")
+library(rpart.plot)
+
+# Assuming your data for patients under 82 is in 'data_below_81' and for older patients in 'data_above_81'
+
+# Train rpart models for each group
+model_younger <- rpart(outcome ~ ., data = data_below_81)
+model_older <- rpart(outcome ~ ., data = data_above_81)
+
+# Plot the decision tree for younger patients
+rpart.plot(model_younger, main = "Mortality Risk Factors (81 anos ou menos)", type = 2)
+
+# Plot the decision tree for older patients
+rpart.plot(model_older, main = "Mortality Risk Factors (Mais de 81 anos)", type = 2)
 ```
