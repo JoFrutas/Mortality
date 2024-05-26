@@ -6,7 +6,6 @@ output:
   html_document: default
   pdf_document: default
 ---
-
 ```{r}
 rm(list = ls())  # Remove all objects from the workspace
 ```
@@ -38,40 +37,33 @@ When you click the **Knit** button a document will be generated that includes bo
 my_data <- read_csv("~/Voltar ao R/Mort R/data01.csv", 
     col_types = cols(group = col_skip(), 
         ID = col_skip()))
+```
+
+
+```{r}
 View(my_data)
 ```
 
-```{r}
-# Split the data into two groups based on age
-data_above_81 <- subset(my_data, age > 81)
-data_below_81 <- subset(my_data, age <= 81)
-```
 
-```{r}
-
-# Summary statistics for both groups
-summary(data_above_81)
-summary(data_below_81)
-
-```
-
-```{r}
-# Convert spaces in column names to underscores
-colnames(my_data) <- gsub(" ", "_", colnames(my_data))
-```
 
 ```{r}
 # Remove rows with missing values
 my_data <- na.omit(my_data)
 ```
 
-```{r}
-# Check the class of the data object
-class(data)
 
-# Check the structure of the data object
-str(data)
+
+
+
+
+
+```{r}
+# Convert spaces in column names to underscores
+colnames(my_data) <- gsub(" ", "_", colnames(my_data))
 ```
+
+
+
 
 ```{r}
 if (!is.data.frame(my_data)) {
@@ -89,65 +81,306 @@ colnames(my_data)
 ```
 
 ```{r}
-# Fit a logistic regression model for each group
-model_above_81 <- glm(outcome ~ ., data = data_above_81, family = binomial)
-model_below_81 <- glm(outcome ~ ., data = data_below_81, family = binomial)
+# Check the class of the data object
+class(data)
 
-# Get the coefficients of the models
-coef_above_81 <- coef(model_above_81)
-coef_below_81 <- coef(model_below_81)
-
-# Compare the coefficients
-comparison <- data.frame(Above_81 = coef_above_81, Below_81 = coef_below_81)
-print(comparison)
+# Check the structure of the data object
+str(data)
 ```
-
 ```{r}
-# Summary of the model for ages above 81
-summary_above_81 <- summary(model_above_81)
-print(summary_above_81)
-
+#View(recode_to_category)
 ```
+
+
+
+
+
 
 ```{r}
 
-# Summary of the model for ages below 81
-summary_below_81 <- summary(model_below_81)
-print(summary_below_81)
+# Define function to recode variables
+recode_to_category <- function(x, cutoffs, labels) {
+  factor(
+    findInterval(x, cutoffs, all.inside = TRUE),
+    labels = labels
+  )
+}
+
+# Recode each variable based on specified cutoffs and labels
+my_data$BMI_category <- recode_to_category(my_data$BMI, c(-Inf, 18.5, 24.9, Inf), c("Underweight", "Normal", "Overweight/Obese"))
+# Recode hypertensive_category
+my_data$hypertensive_category <- factor(my_data$hypertensive, levels = c("no", "yes"))
+
+# Recode atrialfibrillation_category
+my_data$atrialfibrillation_category <- factor(my_data$atrialfibrillation, levels = c("no", "yes"))
+
+# Recode CHD_with_no_MI_category
+my_data$CHD_with_no_MI_category <- factor(my_data$CHD_with_no_MI, levels = c("no", "yes"))
+
+# Recode diabetes_category
+my_data$diabetes_category <- factor(my_data$diabetes, levels = c("no", "yes"))
+
+# Recode deficiencyanemias_category
+my_data$deficiencyanemias_category <- factor(my_data$deficiencyanemias, levels = c("no", "yes"))
+
+# Recode depression_category
+my_data$depression_category <- factor(my_data$depression, levels = c("no", "yes"))
+
+# Recode Hyperlipemia_category
+my_data$Hyperlipemia_category <- factor(my_data$Hyperlipemia, levels = c("no", "yes"))
+
+# Recode Renal_failure_category
+my_data$Renal_failure_category <- factor(my_data$Renal_failure, levels = c("no", "yes"))
+
+# Recode COPD_category
+my_data$COPD_category <- factor(my_data$COPD, levels = c("no", "yes"))
+
+# Recode heart_rate_category
+my_data$heart_rate_category <- recode_to_category(my_data$heart_rate, c(0, 60, 100, Inf), c("Bradycardia", "Normal", "Tachycardia"))
+
+# Recode Systolic_blood_pressure_category
+my_data$Systolic_blood_pressure_category <- recode_to_category(my_data$Systolic_blood_pressure, c(0, 90, 120, 140, Inf), c("Hypotension", "Normal", "Prehypertension", "Stage 1 Hypertension"))
+
+my_data$Respiratory_rate_category <- recode_to_category(my_data$Respiratory_rate, c(0, 12, 20, Inf), c("Normal", "Abnormal"))
+
+
+
+# Recode temperature_category
+my_data$temperature_category <- recode_to_category(my_data$temperature, c(35, 36.5, 37.5, Inf), c("Hypothermia", "Normal", "Febrile"))
+
+# Recode SP_O2_category
+my_data$SP_O2_category <- recode_to_category(my_data$SP_O2, c(0, 90, 95, Inf), c("Hypoxemia", "Normal", "Mild Hypoxemia"))
+
+# Recode Urine_output_category
+my_data$Urine_output_category <- recode_to_category(my_data$Urine_output, c(0, 1, Inf), c("Oliguria", "Normal"))
+
+# Recode hematocrit_category
+my_data$hematocrit_category <- recode_to_category(my_data$hematocrit, c(0, 36, 42, Inf), c("Anemia", "Normal", "High hematocrit"))
+
+# Recode RBC_category
+my_data$RBC_category <- recode_to_category(my_data$RBC, c(0, 4, 5.5, Inf), c("Anemia", "Normal", "High RBC"))
+
+# Recode MCH_category
+my_data$MCH_category <- recode_to_category(my_data$MCH, c(0, 27, 32, Inf), c("Microcytosis", "Normocytic", "Macrocytosis"))
+
+# Recode MCHC_category
+my_data$MCHC_category <- recode_to_category(my_data$MCHC, c(0, 32, 36, Inf), c("Hypochromia", "Normochromic", "Hyperchromia"))
+
+# Recode MCV_category
+my_data$MCV_category <- recode_to_category(my_data$MCV, c(0, 80, 95, Inf), c("Microcytosis", "Normocytic", "Macrocytosis"))
+
+# Recode RDW_category
+my_data$RDW_category <- recode_to_category(my_data$RDW, c(0, 12, 15, Inf), c("Microcytosis", "Normocytic"))
+
+# Recode Leucocyte_category
+my_data$Leucocyte_category <- recode_to_category(my_data$Leucocyte, c(0, 4, 10, Inf), c("Leukopenia", "Normal", "Leukocytosis"))
+
+# Recode Platelets_category
+my_data$Platelets_category <- recode_to_category(my_data$Platelets, c(0, 150, 400, Inf), c("Thrombocytopenia", "Normal", "Thrombocytosis"))
+
+# Recode Neutrophils_category
+my_data$Neutrophils_category <- recode_to_category(my_data$Neutrophils, c(0, 1.5, 7, Inf), c("Neutropenia"))
+
+# Recode Basophils_category
+my_data$Basophils_category <- recode_to_category(my_data$Basophils, c(0, 0, 1, Inf), c("Basophilia"))
+
+# Recode Lymphocyte_category
+my_data$Lymphocyte_category <- recode_to_category(my_data$Lymphocyte, c(0, 1, 4, Inf), c("Lymphopenia", "Normal", "Lymphocytosis"))
+
+# Recode PT_category
+my_data$PT_category <- recode_to_category(my_data$PT, c(0, 11, 13.5, Inf), c("Prolonged PT"))
+
+# Recode INR_category
+my_data$INR_category <- recode_to_category(my_data$INR, c(0, 1, 1.1, Inf), c("Elevated INR"))
+
+# Recode NT_ProBNP_category
+my_data$NT_ProBNP_category <- recode_to_category(my_data$NT_ProBNP, c(0, 125, 300, Inf), c("Low", "Normal", "High"))
+
+ 
+
+
+```
+
+
+```{r}
+print (my_data)
+```
+
+```{r}
+# Assuming you have the recode_to_category function defined and your data is in a dataframe named 'my_data'
+
+# Select desired variables (including outcome)
+selected_vars <- c("outcome", "age", "BMI_category", "hypertensive_category", "atrialfibrillation_category", 
+                   "CHD_with_no_MI_category", "diabetes_category", "deficiencyanemias_category", 
+                   "depression_category", "Hyperlipemia_category", "Renal_failure_category", "COPD_category",
+                   "heart_rate_category", "Systolic_blood_pressure_category", "Respiratory_rate_category",
+                   "temperature_category", "SP_O2_category", "Urine_output_category", "hematocrit_category",
+                   "RBC_category", "MCH_category", "MCHC_category", "MCV_category", "RDW_category",
+                   "Leucocyte_category", "Platelets_category", "Neutrophils_category", "Basophils_category",
+                   "Lymphocyte_category", "PT_category", "INR_category", "NT_ProBNP_category")
+
+# Create a new data frame with selected variables
+recoded_data <- my_data[, selected_vars]
+
+# Print the new data frame
+print(recoded_data)
+
+```
+
+
+
+
+
+
+
+
+
+```{r}
+
+# Resumo estatístico básico
+summary(my_data)
+
+
+# Análise descritiva por gênero
+my_data %>%
+  group_by(gendera) %>%
+  summarise(
+    age_mean = mean(age, na.rm = TRUE),
+    age_median = median(age, na.rm = TRUE),
+    age_sd = sd(age, na.rm = TRUE),
+    BMI_mean = mean(BMI, na.rm = TRUE),
+    BMI_median = median(BMI, na.rm = TRUE),
+    BMI_sd = sd(BMI, na.rm = TRUE),
+    heart_rate_mean = mean(heart_rate, na.rm = TRUE),
+    heart_rate_median = median(heart_rate, na.rm = TRUE),
+    heart_rate_sd = sd(heart_rate, na.rm = TRUE),
+    Systolic_BP_mean = mean(Systolic_blood_pressure, na.rm = TRUE),
+    Systolic_BP_median = median(Systolic_blood_pressure, na.rm = TRUE),
+    Systolic_BP_sd = sd(Systolic_blood_pressure, na.rm = TRUE),
+    Diastolic_BP_mean = mean(Diastolic_blood_pressure, na.rm = TRUE),
+    Diastolic_BP_median = median(Diastolic_blood_pressure, na.rm = TRUE),
+    Diastolic_BP_sd = sd(Diastolic_blood_pressure, na.rm = TRUE),
+    glucose_mean = mean(glucose, na.rm = TRUE),
+    glucose_median = median(glucose, na.rm = TRUE),
+    glucose_sd = sd(glucose, na.rm = TRUE)
+  )
+
 ```
 
 ```{r}
 
-# Calculate the standard errors of the coefficients
-se_above_81 <- sqrt(diag(vcov(model_above_81)))
-se_below_81 <- sqrt(diag(vcov(model_below_81)))
 
-# Calculate the z-scores
-z_scores <- (coef_above_81 - coef_below_81) / sqrt(se_above_81^2 + se_below_81^2)
-
-# Calculate the p-values
-p_values <- 2 * (1 - pnorm(abs(z_scores)))
-
-# Create a dataframe to display the results
-comparison <- data.frame(
-  Coef_Above_81 = coef_above_81,
-  Coef_Below_81 = coef_below_81,
-  Z_Score = z_scores,
-  P_Value = p_values
+# Para demonstração, vou criar um data frame de exemplo com as variáveis listadas
+set.seed(123)
+my_data <- data.frame(
+  outcome = sample(c("Yes", "No"), 100, replace = TRUE),
+  age = runif(100, 18, 90),
+  gendera = sample(c("Male", "Female"), 100, replace = TRUE),
+  BMI = runif(100, 18, 35),
+  hypertensive = sample(c("Yes", "No"), 100, replace = TRUE),
+  atrialfibrillation = sample(c("Yes", "No"), 100, replace = TRUE),
+  CHD_with_no_MI = sample(c("Yes", "No"), 100, replace = TRUE),
+  diabetes = sample(c("Yes", "No"), 100, replace = TRUE),
+  deficiencyanemias = sample(c("Yes", "No"), 100, replace = TRUE),
+  depression = sample(c("Yes", "No"), 100, replace = TRUE),
+  Hyperlipemia = sample(c("Yes", "No"), 100, replace = TRUE),
+  Renal_failure = sample(c("Yes", "No"), 100, replace = TRUE),
+  COPD = sample(c("Yes", "No"), 100, replace = TRUE),
+  heart_rate = runif(100, 60, 100),
+  Systolic_blood_pressure = runif(100, 90, 180),
+  Diastolic_blood_pressure = runif(100, 60, 120),
+  Respiratory_rate = runif(100, 12, 20),
+  temperature = runif(100, 36, 38),
+  SP_O2 = runif(100, 90, 100),
+  Urine_output = runif(100, 500, 2000),
+  hematocrit = runif(100, 35, 50),
+  RBC = runif(100, 4, 6),
+  MCH = runif(100, 27, 32),
+  MCHC = runif(100, 32, 36),
+  MCV = runif(100, 80, 100),
+  RDW = runif(100, 11, 15),
+  Leucocyte = runif(100, 4, 11),
+  Platelets = runif(100, 150, 450),
+  Neutrophils = runif(100, 40, 70),
+  Basophils = runif(100, 0, 1),
+  Lymphocyte = runif(100, 20, 40),
+  PT = runif(100, 10, 13),
+  INR = runif(100, 0.8, 1.2),
+  NT_ProBNP = runif(100, 125, 450),
+  Creatine_kinase = runif(100, 10, 200),
+  Creatinine = runif(100, 0.5, 1.5),
+  Urea_nitrogen = runif(100, 7, 20),
+  glucose = runif(100, 70, 140),
+  Blood_potassium = runif(100, 3.5, 5),
+  Blood_sodium = runif(100, 135, 145),
+  Blood_calcium = runif(100, 8.5, 10.5),
+  Chloride = runif(100, 98, 106),
+  Anion_gap = runif(100, 3, 11),
+  Magnesium_ion = runif(100, 1.5, 2.5),
+  PH = runif(100, 7.35, 7.45),
+  Bicarbonate = runif(100, 22, 28),
+  Lactic_acid = runif(100, 0.5, 2.2),
+  PCO2 = runif(100, 35, 45),
+  EF = runif(100, 55, 70)
 )
 
-# Print the comparison
-print(comparison)
-print (p_values
-      )
+# Histogram for age
+ggplot(my_data, aes(x = age)) +
+  geom_histogram(binwidth = 5, fill = "grey", color = "black") +
+  labs(title = "Distribution of Age", x = "Age", y = "Frequency")
+
+# Boxplot for BMI by gender
+ggplot(my_data, aes(x = gendera, y = BMI, fill = gendera)) +
+  geom_boxplot() +
+  labs(title = "BMI by Gender", x = "Gender", y = "BMI") +
+  scale_fill_brewer(palette = "Pastel1")
+
+# Scatter plot for age vs. heart rate
+ggplot(my_data, aes(x = age, y = heart_rate)) +
+  geom_point(color = "grey") +
+  labs(title = "Age vs. Heart Rate", x = "Age", y = "Heart Rate")
+
+# Bar plot for outcome
+ggplot(my_data, aes(x = outcome)) +
+  geom_bar(fill = "grey") +
+  labs(title = "Outcome Distribution", x = "Outcome", y = "Count")
+
+# Create a bar plot for gender
+ggplot(my_data, aes(x = gendera)) +
+  geom_bar(fill = "grey", color = "black") +
+  labs(title = "Distribution of Gender",
+       x = "Gender",
+       y = "Frequency")
+
 ```
+```{r}
+
+# Create a pyramid-style plot with age sections and updated colors
+ggplot(mortality_data, aes(x = age_section, y = ifelse(gendera == "Female", -mortality_rate, mortality_rate), fill = gendera)) +
+  geom_bar(stat = "identity") +
+  scale_y_continuous(labels = abs) +
+  scale_fill_manual(values = c("Male" = "lightgrey", "Female" = "darkgrey")) + # Updated colors
+  coord_flip() +
+  labs(title = "Mortality by Age and Gender",
+       x = "Age Section",
+       y = "Mortality Rate",
+       fill = "Gender") +
+  theme_minimal() +
+  theme(legend.position = "top",
+        axis.text.y = element_text(hjust = 1))
+
+
+
+
+```
+
 
 
 
 ```{r}
 # Split data by age (using your preferred method)
-data_above_81 <- my_data[my_data$age > 81, ]
-data_below_81 <- my_data[my_data$age <= 81, ]
+data_above_81 <- recoded_data[recoded_data$age > 81, ]
+data_below_81 <- recoded_data[recoded_data$age <= 81, ]
 
 # Build decision tree models with control argument
 young_model <- rpart::rpart(outcome ~ ., data = data_below_81, cp = 0.01)  # Set cost-complexity pruning
@@ -159,6 +392,29 @@ summary(old_model)  # Set cost-complexity pruning
 
 
 ```
+
+```{r}
+print (old_model)
+```
+
+```{r}
+print (young_model)
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 ```{r}
 # Install rpart.plot package if not already installed
@@ -175,5 +431,7 @@ model_older <- rpart(outcome ~ ., data = data_above_81)
 rpart.plot(model_younger, main = "Mortality Risk Factors (81 anos ou menos)", type = 2)
 
 # Plot the decision tree for older patients
-rpart.plot(model_older, main = "Mortality Risk Factors (Mais de 81 anos)", type = 2)
+rpart.plot(model_older, main = "Mortality Risk Factors (Mais de 81 anos)", type 
+           
+             = 2)
 ```
